@@ -72,15 +72,20 @@ class WeeklyLog(models.Model):
     date_submitted = models.DateField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('student', 'week_number')
+        
     def __str__(self):
         return f"Week {self.week_number} - {self.student}"
     
     def clean(self):
+        from django.core.exceptions import ValidationError
+
         if self.student.role != 'student':
-            from django.core.exceptions import ValidationError
             raise ValidationError("Only users with the student role can have weekly logs.")
+        if self.week_number < 1:
+            raise ValidationError("Week number must be 1 or greater.")
         
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-        
