@@ -49,3 +49,38 @@ class InternshipPlacement(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class WeeklyLog(models.Model):
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='weekly_logs'
+    )
+    week_number = models.PositiveIntegerField()
+    activities = models.TextField()
+    challenges = models.TextField()
+    solutions = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    date_submitted = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Week {self.week_number} - {self.student}"
+    
+    def clean(self):
+        if self.student.role != 'student':
+            from django.core.exceptions import ValidationError
+            raise ValidationError("Only users with the student role can have weekly logs.")
+        
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        
