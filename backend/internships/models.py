@@ -85,7 +85,19 @@ class WeeklyLog(models.Model):
             raise ValidationError("Only users with the student role can have weekly logs.")
         if self.week_number < 1:
             raise ValidationError("Week number must be 1 or greater.")
-        
+        if self.reviewed_by and self.reviewed_by.role != 'workplace_supervisor':
+            raise ValidationError("Only workplace supervisors can review weekly logs.")
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_logs'
+    )
+    review_comment = models.TextField(blank=True, null=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
